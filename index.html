@@ -28,35 +28,37 @@
   * { box-sizing: border-box; }
   body {
     font-family: var(--font-sans);
-    background: var(--color-background-secondary);
+    background: linear-gradient(180deg, #eef5ff 0%, #f7f7f2 100%);
     color: var(--color-text-primary);
     margin: 0;
     padding: 2rem 1rem;
   }
   #app {
-    max-width: 680px;
+    max-width: 720px;
     margin: 0 auto;
     background: var(--color-background-primary);
     border-radius: var(--border-radius-lg);
     padding: 1.5rem;
     border: 0.5px solid var(--color-border-tertiary);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06);
   }
   button {
     font-family: var(--font-sans);
     font-size: 13px;
     background: transparent;
-    border: 0.5px solid var(--color-border-secondary);
+    border: 1px solid var(--color-border-secondary);
     border-radius: var(--border-radius-md);
     padding: 8px 14px;
     cursor: pointer;
     color: var(--color-text-primary);
+    transition: 0.2s ease;
   }
-  button:hover { background: var(--color-background-secondary); }
+  button:hover { background: var(--color-background-secondary); transform: translateY(-1px); }
   button:active { transform: scale(0.98); }
   input[type="number"] {
     font-family: var(--font-sans);
     font-size: 14px;
-    border: 0.5px solid var(--color-border-secondary);
+    border: 1px solid var(--color-border-secondary);
     border-radius: var(--border-radius-md);
     padding: 8px 10px;
     height: 36px;
@@ -68,58 +70,83 @@
     overflow: hidden;
     clip: rect(0,0,0,0);
   }
+  .sample-card {
+    border: 1px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    padding: 12px;
+    cursor: pointer;
+    text-align: center;
+    background: var(--color-background-primary);
+    transition: all 0.2s ease;
+  }
+  .sample-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  }
+  .sample-icon {
+    font-size: 28px;
+    display: block;
+    margin-bottom: 8px;
+    color: var(--color-text-primary);
+  }
+  .panel-blue { background: #e8f3ff; }
+  .panel-green { background: #eaf7e8; }
+  .panel-orange { background: #fff2df; }
+  .btn-blue { background: #e8f3ff; border-color: #8fc0f1; }
+  .btn-green { background: #eaf7e8; border-color: #9ad18b; }
+  .btn-orange { background: #fff2df; border-color: #f0c36a; }
 </style>
 </head>
 <body>
 
 <div id="app">
-  <h2 class="sr-only">Simulador interactivo de diluciones seriadas y calculo de UFC por mililitro, donde el estudiante elige una muestra, simula la siembra en placas y calcula la carga microbiana real.</h2>
+  <h2 class="sr-only">Simulador interactivo de diluciones seriadas y calculo de UFC por mililitro.</h2>
 
-  <div style="display:flex; align-items:center; gap:10px; margin-bottom:1.2rem;">
-    <i class="ti ti-flask" style="font-size:22px; color:var(--color-text-info);" aria-hidden="true"></i>
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:1.2rem; padding:12px; border-radius:12px; background:#eef5ff;">
+    <i class="ti ti-flask" style="font-size:24px; color:#185fa5;" aria-hidden="true"></i>
     <div>
-      <p style="font-weight:500; font-size:16px; margin:0;">Simulador: diluciones seriadas y conteo de UFC</p>
+      <p style="font-weight:600; font-size:16px; margin:0;">Simulador: diluciones seriadas y conteo de UFC</p>
       <p style="font-size:13px; color:var(--color-text-secondary); margin:0;">Practica el calculo antes de ir al laboratorio real</p>
     </div>
   </div>
 
-  <div id="step1" style="background:var(--color-background-secondary); border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
+  <div id="step1" class="panel-blue" style="border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
     <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 10px;">Paso 1 - Elige la muestra agroindustrial</p>
     <div id="sampleGrid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;"></div>
   </div>
 
-  <div id="step2" style="display:none; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
+  <div id="step2" class="panel-green" style="display:none; border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem; border:1px solid #c8e6c2;">
     <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 10px;">Paso 2 - Elige el factor de dilucion a sembrar</p>
     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;" id="dilButtons"></div>
     <p style="font-size:12px; color:var(--color-text-tertiary); margin:0;">Cada tubo diluye 1 mL de muestra en 9 mL de solucion esteril (factor 1:10 acumulado).</p>
   </div>
 
   <div id="step3" style="display:none;">
-    <div style="background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
+    <div class="panel-orange" style="border:1px solid #f3d39a; border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
       <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 10px;">Paso 3 - Cuenta las colonias en la placa sembrada</p>
       <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
-        <div id="petriBox" style="width:140px; height:140px; border-radius:50%; background:var(--color-background-secondary); border:2px solid var(--color-border-secondary); position:relative; flex-shrink:0;"></div>
+        <div id="petriBox" style="width:140px; height:140px; border-radius:50%; background:#fff8ee; border:2px solid #d9a441; position:relative; flex-shrink:0;"></div>
         <div style="flex:1; min-width:160px;">
           <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 6px;">Colonias contadas en esta placa</p>
-          <p id="colonyCount" style="font-size:28px; font-weight:500; margin:0 0 6px;">0</p>
+          <p id="colonyCount" style="font-size:28px; font-weight:600; margin:0 0 6px;">0</p>
           <p style="font-size:12px; color:var(--color-text-tertiary); margin:0;">Haz clic en los puntos de la placa para contarlos, o usa el boton.</p>
-          <button id="autoCountBtn" style="margin-top:8px; font-size:13px;">Contar automaticamente</button>
+          <button id="autoCountBtn" class="btn-orange" style="margin-top:8px; font-size:13px;">Contar automaticamente</button>
         </div>
       </div>
     </div>
 
-    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
+    <div class="panel-blue" style="border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem; border:1px solid #cfe3fb;">
       <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 10px;">Paso 4 - Calcula la carga microbiana (UFC/mL)</p>
       <p style="font-size:12px; color:var(--color-text-tertiary); margin:0 0 10px;">Formula: UFC/mL = (colonias contadas x factor de dilucion) / volumen sembrado (mL)</p>
       <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
         <input type="number" id="userAnswer" placeholder="Tu calculo (UFC/mL)" style="width:200px;">
-        <button id="checkBtn">Verificar</button>
+        <button id="checkBtn" class="btn-blue">Verificar</button>
       </div>
       <div id="feedback" style="font-size:13px; min-height:20px;"></div>
     </div>
 
     <div id="resultCard" style="display:none; border-radius:var(--border-radius-lg); padding:1rem 1.2rem;">
-      <p id="resultTitle" style="font-weight:500; font-size:14px; margin:0 0 4px;"></p>
+      <p id="resultTitle" style="font-weight:600; font-size:14px; margin:0 0 4px;"></p>
       <p id="resultDetail" style="font-size:13px; margin:0;"></p>
     </div>
   </div>
@@ -136,8 +163,8 @@
 <script>
 (function(){
   var samples = [
-    { id:'leche', name:'Leche cruda', icon:'ti-glass-full', volume:1, trueColonies:240 },
-    { id:'pollo', name:'Pollo procesado', icon:'ti-meat', volume:1, trueColonies:185 },
+    { id:'leche', name:'Leche cruda', icon:'ti-cup', volume:1, trueColonies:240 },
+    { id:'pollo', name:'Pollo procesado', icon:'ti-drumstick', volume:1, trueColonies:185 },
     { id:'agua', name:'Agua de proceso', icon:'ti-droplet', volume:1, trueColonies:42 }
   ];
   var dilutions = [
@@ -147,12 +174,14 @@
   ];
 
   var state = { sample:null, dilution:null, counted:0, totalDots:0 };
-
   var sampleGrid = document.getElementById('sampleGrid');
+
   samples.forEach(function(s){
     var card = document.createElement('div');
-    card.style.cssText = 'border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); padding:12px; cursor:pointer; text-align:center; background:var(--color-background-primary);';
-    card.innerHTML = '<i class="ti ' + s.icon + '" style="font-size:22px; display:block; margin-bottom:6px; color:var(--color-text-secondary);" aria-hidden="true"></i><span style="font-size:13px;">' + s.name + '</span>';
+    card.className = 'sample-card';
+    card.innerHTML =
+      '<i class="ti ' + s.icon + ' sample-icon" aria-hidden="true"></i>' +
+      '<span style="font-size:13px; font-weight:600;">' + s.name + '</span>';
     card.addEventListener('click', function(){ selectSample(s, card); });
     sampleGrid.appendChild(card);
   });
@@ -161,10 +190,12 @@
     state.sample = s;
     Array.prototype.forEach.call(sampleGrid.children, function(c){
       c.style.borderColor = 'var(--color-border-tertiary)';
-      c.style.borderWidth = '0.5px';
+      c.style.borderWidth = '1px';
+      c.style.transform = 'none';
     });
-    card.style.borderColor = 'var(--color-border-info)';
+    card.style.borderColor = '#378add';
     card.style.borderWidth = '2px';
+    card.style.transform = 'translateY(-2px)';
     document.getElementById('step2').style.display = 'block';
     buildDilButtons();
   }
@@ -172,9 +203,15 @@
   function buildDilButtons(){
     var box = document.getElementById('dilButtons');
     box.innerHTML = '';
-    dilutions.forEach(function(d){
+    dilutions.forEach(function(d, idx){
       var b = document.createElement('button');
-      b.textContent = 'Sembrar dilucion ' + d.label;
+      var styles = [
+        { cls:'btn-blue', icon:'ti-wave-saw-tool' },
+        { cls:'btn-green', icon:'ti-microscope' },
+        { cls:'btn-orange', icon:'ti-binary-tree' }
+      ][idx];
+      b.className = styles.cls;
+      b.innerHTML = '<i class="ti ' + styles.icon + '" style="margin-right:6px;" aria-hidden="true"></i>Sembrar dilucion ' + d.label;
       b.style.fontSize = '13px';
       b.addEventListener('click', function(){ selectDilution(d, b); });
       box.appendChild(b);
@@ -187,8 +224,8 @@
       b.style.borderColor = 'var(--color-border-secondary)';
       b.style.background = '';
     });
-    btn.style.borderColor = 'var(--color-border-info)';
-    btn.style.background = 'var(--color-background-info)';
+    btn.style.borderColor = '#2f80ed';
+    btn.style.background = '#e8f3ff';
     document.getElementById('step3').style.display = 'block';
     state.counted = 0;
     document.getElementById('colonyCount').textContent = '0';
@@ -299,7 +336,8 @@
     document.getElementById('resultCard').style.display = 'none';
     Array.prototype.forEach.call(sampleGrid.children, function(c){
       c.style.borderColor = 'var(--color-border-tertiary)';
-      c.style.borderWidth = '0.5px';
+      c.style.borderWidth = '1px';
+      c.style.transform = 'none';
     });
   });
 })();
