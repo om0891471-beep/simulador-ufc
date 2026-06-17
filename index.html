@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de diluciones seriadas y calculo de UFC</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.44.0/iconfont/tabler-icons.min.css">
+<style>
+  :root {
+    --color-background-primary: #ffffff;
+    --color-background-secondary: #f4f3f1;
+    --color-background-info: #e6f1fb;
+    --color-background-success: #eaf3de;
+    --color-background-danger: #fcebeb;
+    --color-text-primary: #1a1a18;
+    --color-text-secondary: #5f5e5a;
+    --color-text-tertiary: #888780;
+    --color-text-info: #185fa5;
+    --color-text-success: #3b6d11;
+    --color-text-danger: #a32d2d;
+    --color-border-tertiary: rgba(0,0,0,0.15);
+    --color-border-secondary: rgba(0,0,0,0.3);
+    --color-border-info: #378add;
+    --border-radius-md: 8px;
+    --border-radius-lg: 12px;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    margin: 0;
+    padding: 2rem 1rem;
+  }
+  #app {
+    max-width: 680px;
+    margin: 0 auto;
+    background: var(--color-background-primary);
+    border-radius: var(--border-radius-lg);
+    padding: 1.5rem;
+    border: 0.5px solid var(--color-border-tertiary);
+  }
+  button {
+    font-family: var(--font-sans);
+    font-size: 13px;
+    background: transparent;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 8px 14px;
+    cursor: pointer;
+    color: var(--color-text-primary);
+  }
+  button:hover { background: var(--color-background-secondary); }
+  button:active { transform: scale(0.98); }
+  input[type="number"] {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    padding: 8px 10px;
+    height: 36px;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <h2 class="sr-only">Simulador interactivo de diluciones seriadas y calculo de UFC por mililitro, donde el estudiante elige una muestra, simula la siembra en placas y calcula la carga microbiana real.</h2>
+
+  <div style="display:flex; align-items:center; gap:10px; margin-bottom:1.2rem;">
+    <i class="ti ti-flask" style="font-size:22px; color:var(--color-text-info);" aria-hidden="true"></i>
+    <div>
+      <p style="font-weight:500; font-size:16px; margin:0;">Simulador: diluciones seriadas y conteo de UFC</p>
+      <p style="font-size:13px; color:var(--color-text-secondary); margin:0;">Practica el calculo antes de ir al laboratorio real</p>
+    </div>
+  </div>
+
+  <div id="step1" style="background:var(--color-background-secondary); border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
+    <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 10px;">Paso 1 - Elige la muestra agroindustrial</p>
+    <div id="sampleGrid" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px;"></div>
+  </div>
+
+  <div id="step2" style="display:none; background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
+    <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 10px;">Paso 2 - Elige el factor de dilucion a sembrar</p>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;" id="dilButtons"></div>
+    <p style="font-size:12px; color:var(--color-text-tertiary); margin:0;">Cada tubo diluye 1 mL de muestra en 9 mL de solucion esteril (factor 1:10 acumulado).</p>
+  </div>
+
+  <div id="step3" style="display:none;">
+    <div style="background:var(--color-background-primary); border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
+      <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 10px;">Paso 3 - Cuenta las colonias en la placa sembrada</p>
+      <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+        <div id="petriBox" style="width:140px; height:140px; border-radius:50%; background:var(--color-background-secondary); border:2px solid var(--color-border-secondary); position:relative; flex-shrink:0;"></div>
+        <div style="flex:1; min-width:160px;">
+          <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 6px;">Colonias contadas en esta placa</p>
+          <p id="colonyCount" style="font-size:28px; font-weight:500; margin:0 0 6px;">0</p>
+          <p style="font-size:12px; color:var(--color-text-tertiary); margin:0;">Haz clic en los puntos de la placa para contarlos, o usa el boton.</p>
+          <button id="autoCountBtn" style="margin-top:8px; font-size:13px;">Contar automaticamente</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-lg); padding:1rem 1.2rem; margin-bottom:1rem;">
+      <p style="font-size:13px; color:var(--color-text-secondary); margin:0 0 10px;">Paso 4 - Calcula la carga microbiana (UFC/mL)</p>
+      <p style="font-size:12px; color:var(--color-text-tertiary); margin:0 0 10px;">Formula: UFC/mL = (colonias contadas x factor de dilucion) / volumen sembrado (mL)</p>
+      <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px;">
+        <input type="number" id="userAnswer" placeholder="Tu calculo (UFC/mL)" style="width:200px;">
+        <button id="checkBtn">Verificar</button>
+      </div>
+      <div id="feedback" style="font-size:13px; min-height:20px;"></div>
+    </div>
+
+    <div id="resultCard" style="display:none; border-radius:var(--border-radius-lg); padding:1rem 1.2rem;">
+      <p id="resultTitle" style="font-weight:500; font-size:14px; margin:0 0 4px;"></p>
+      <p id="resultDetail" style="font-size:13px; margin:0;"></p>
+    </div>
+  </div>
+
+  <div style="margin-top:1.2rem; display:flex; gap:10px; flex-wrap:wrap;">
+    <button id="resetBtn">Reiniciar simulacion</button>
+  </div>
+
+  <p style="margin-top:1.5rem; font-size:11px; color:var(--color-text-tertiary); text-align:center;">
+    Objeto Virtual de Aprendizaje - Microbiologia en alimentos para agroindustria
+  </p>
+</div>
+
+<script>
+(function(){
+  var samples = [
+    { id:'leche', name:'Leche cruda', icon:'ti-glass-full', volume:1, trueColonies:240 },
+    { id:'pollo', name:'Pollo procesado', icon:'ti-meat', volume:1, trueColonies:185 },
+    { id:'agua', name:'Agua de proceso', icon:'ti-droplet', volume:1, trueColonies:42 }
+  ];
+  var dilutions = [
+    { factor: 100, label:'10\u207B\u00B2' },
+    { factor: 1000, label:'10\u207B\u00B3' },
+    { factor: 10000, label:'10\u207B\u2074' }
+  ];
+
+  var state = { sample:null, dilution:null, counted:0, totalDots:0 };
+
+  var sampleGrid = document.getElementById('sampleGrid');
+  samples.forEach(function(s){
+    var card = document.createElement('div');
+    card.style.cssText = 'border:0.5px solid var(--color-border-tertiary); border-radius:var(--border-radius-md); padding:12px; cursor:pointer; text-align:center; background:var(--color-background-primary);';
+    card.innerHTML = '<i class="ti ' + s.icon + '" style="font-size:22px; display:block; margin-bottom:6px; color:var(--color-text-secondary);" aria-hidden="true"></i><span style="font-size:13px;">' + s.name + '</span>';
+    card.addEventListener('click', function(){ selectSample(s, card); });
+    sampleGrid.appendChild(card);
+  });
+
+  function selectSample(s, card){
+    state.sample = s;
+    Array.prototype.forEach.call(sampleGrid.children, function(c){
+      c.style.borderColor = 'var(--color-border-tertiary)';
+      c.style.borderWidth = '0.5px';
+    });
+    card.style.borderColor = 'var(--color-border-info)';
+    card.style.borderWidth = '2px';
+    document.getElementById('step2').style.display = 'block';
+    buildDilButtons();
+  }
+
+  function buildDilButtons(){
+    var box = document.getElementById('dilButtons');
+    box.innerHTML = '';
+    dilutions.forEach(function(d){
+      var b = document.createElement('button');
+      b.textContent = 'Sembrar dilucion ' + d.label;
+      b.style.fontSize = '13px';
+      b.addEventListener('click', function(){ selectDilution(d, b); });
+      box.appendChild(b);
+    });
+  }
+
+  function selectDilution(d, btn){
+    state.dilution = d;
+    Array.prototype.forEach.call(document.getElementById('dilButtons').children, function(b){
+      b.style.borderColor = 'var(--color-border-secondary)';
+      b.style.background = '';
+    });
+    btn.style.borderColor = 'var(--color-border-info)';
+    btn.style.background = 'var(--color-background-info)';
+    document.getElementById('step3').style.display = 'block';
+    state.counted = 0;
+    document.getElementById('colonyCount').textContent = '0';
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('resultCard').style.display = 'none';
+    document.getElementById('userAnswer').value = '';
+    drawPlate();
+  }
+
+  function drawPlate(){
+    var realColoniesOnPlate = Math.max(3, Math.round(state.sample.trueColonies / (state.dilution.factor / 100)));
+    var cappedDots = Math.min(realColoniesOnPlate, 60);
+    var petri = document.getElementById('petriBox');
+    petri.innerHTML = '';
+    state.totalDots = cappedDots;
+    state.counted = 0;
+    document.getElementById('colonyCount').textContent = '0';
+
+    for (var i = 0; i < cappedDots; i++) {
+      var angle = Math.random() * 2 * Math.PI;
+      var r = Math.random() * 58;
+      var x = 70 + r * Math.cos(angle);
+      var y = 70 + r * Math.sin(angle);
+      var dot = document.createElement('div');
+      dot.style.cssText = 'position:absolute; width:7px; height:7px; border-radius:50%; background:var(--color-text-secondary); opacity:0.55; left:' + x + 'px; top:' + y + 'px; cursor:pointer;';
+      dot.dataset.counted = '0';
+      dot.addEventListener('click', function(){
+        if (this.dataset.counted === '0') {
+          this.dataset.counted = '1';
+          this.style.background = 'var(--color-text-info)';
+          this.style.opacity = '1';
+          state.counted++;
+        } else {
+          this.dataset.counted = '0';
+          this.style.background = 'var(--color-text-secondary)';
+          this.style.opacity = '0.55';
+          state.counted--;
+        }
+        document.getElementById('colonyCount').textContent = state.counted;
+      });
+      petri.appendChild(dot);
+    }
+  }
+
+  document.getElementById('autoCountBtn').addEventListener('click', function(){
+    var dots = document.getElementById('petriBox').children;
+    Array.prototype.forEach.call(dots, function(dot){
+      dot.dataset.counted = '1';
+      dot.style.background = 'var(--color-text-info)';
+      dot.style.opacity = '1';
+    });
+    state.counted = state.totalDots;
+    document.getElementById('colonyCount').textContent = state.counted;
+  });
+
+  document.getElementById('checkBtn').addEventListener('click', function(){
+    var userVal = parseFloat(document.getElementById('userAnswer').value);
+    var correct = state.counted * state.dilution.factor / state.sample.volume;
+    var fb = document.getElementById('feedback');
+    var resultCard = document.getElementById('resultCard');
+    var resultTitle = document.getElementById('resultTitle');
+    var resultDetail = document.getElementById('resultDetail');
+
+    if (isNaN(userVal)) {
+      fb.textContent = 'Ingresa un valor numerico para verificar tu calculo.';
+      fb.style.color = 'var(--color-text-danger)';
+      return;
+    }
+
+    var tolerance = correct * 0.1;
+    var isClose = Math.abs(userVal - correct) <= tolerance;
+
+    if (isClose) {
+      fb.textContent = 'Correcto. Tu calculo coincide con la carga real de la muestra.';
+      fb.style.color = 'var(--color-text-success)';
+    } else {
+      fb.textContent = 'Tu resultado no coincide. Revisa: colonias contadas x factor de dilucion / volumen sembrado.';
+      fb.style.color = 'var(--color-text-danger)';
+    }
+
+    resultCard.style.display = 'block';
+    var ufcRounded = Math.round(correct);
+    var status, statusColor, statusBg, statusText;
+
+    if (ufcRounded < 100000) {
+      status = 'Lote conforme';
+      statusColor = 'var(--color-text-success)';
+      statusBg = 'var(--color-background-success)';
+      statusText = 'La carga microbiana calculada esta dentro del limite aceptado por el RTCA 67.04.50:17 para este tipo de producto.';
+    } else {
+      status = 'Lote no conforme';
+      statusColor = 'var(--color-text-danger)';
+      statusBg = 'var(--color-background-danger)';
+      statusText = 'La carga microbiana calculada excede el limite permitido por la normativa. El lote deberia retenerse para analisis adicional.';
+    }
+
+    resultCard.style.background = statusBg;
+    resultTitle.style.color = statusColor;
+    resultTitle.textContent = status + ' - ' + ufcRounded.toLocaleString('es-SV') + ' UFC/mL';
+    resultDetail.style.color = statusColor;
+    resultDetail.textContent = statusText;
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', function(){
+    state = { sample:null, dilution:null, counted:0, totalDots:0 };
+    document.getElementById('step2').style.display = 'none';
+    document.getElementById('step3').style.display = 'none';
+    document.getElementById('resultCard').style.display = 'none';
+    Array.prototype.forEach.call(sampleGrid.children, function(c){
+      c.style.borderColor = 'var(--color-border-tertiary)';
+      c.style.borderWidth = '0.5px';
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
